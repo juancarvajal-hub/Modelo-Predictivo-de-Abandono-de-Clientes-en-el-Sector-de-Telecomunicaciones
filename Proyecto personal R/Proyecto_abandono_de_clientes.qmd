@@ -1,0 +1,46 @@
+---
+title: ""
+lag: es
+format: 
+  pdf:
+    documentclass: article
+    fontsize: 12pt
+    linestretch: 1.5
+    geometry: "margin=1in"
+    number-sections: true
+    colorlinks: true
+    linkcolor: blue
+    citecolor: teal
+    urlcolor: magenta
+mainfont: Times New Roman
+monofont: Courier New
+editor: visual
+editor_options: 
+  chunk_output_type: console
+
+execute:
+  echo: true       # Muestra el código en los chunks
+  warning: false   # Oculta advertencias
+  message: false   # Oculta mensajes (ej. de librerías)
+  eval: true       # Ejecuta los chunks
+  cache: true 
+---
+
+```{=tex}
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+{\scshape\huge {Modelo Predictivo de Abandono de Clientes en el Sector de Telecomunicaciones usando Machine Learning en R}  \par\vspace{2cm}}
+{\itshape\Large Trabajo Personal \par}
+\vfill
+{\Large Autor: \par}
+{\large Juan Gabriel Carvajal Negrete \par\vspace{2cm}}
+\vfill
+\end{center}
+\vspace*{\fill}
+```
+
+\newpage
+
+## titulo
+
