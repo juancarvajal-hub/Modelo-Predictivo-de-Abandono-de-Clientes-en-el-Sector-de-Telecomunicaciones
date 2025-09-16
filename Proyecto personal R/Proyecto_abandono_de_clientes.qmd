@@ -7,7 +7,7 @@ format:
     fontsize: 12pt
     linestretch: 1.5
     geometry: "margin=1in"
-    number-sections: true
+    number-sections: false
     colorlinks: true
     linkcolor: blue
     citecolor: teal
@@ -19,7 +19,7 @@ editor_options:
   chunk_output_type: console
 
 execute:
-  echo: true       # Muestra el código en los chunks
+  echo: false       # Muestra el código en los chunks
   warning: false   # Oculta advertencias
   message: false   # Oculta mensajes (ej. de librerías)
   eval: true       # Ejecuta los chunks
@@ -42,5 +42,25 @@ execute:
 
 \newpage
 
-## titulo
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# Paquetes a usar 
+require(magrittr)
+require(tidyverse)
+require(ggplot2)
+require(psych)
+```
+
+
+## preprocesamiento de la imformacion 
+
+```{r}
+#| echo: false
+datos <- read.csv("WA_Fn-UseC_-Telco-Customer-Churn.csv", header = TRUE, sep = ",")
+```
+
+La base de datos cuenta con **`r dim(datos)`** filas y columnas respectivamente 
 
