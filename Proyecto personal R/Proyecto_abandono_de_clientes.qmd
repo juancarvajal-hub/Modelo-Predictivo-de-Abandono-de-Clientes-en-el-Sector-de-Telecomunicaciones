@@ -10,8 +10,9 @@ format:
     number-sections: false
     colorlinks: true
     linkcolor: blue
-    citecolor: teal
-    urlcolor: magenta
+    citecolor: blue
+    urlcolor: blue
+    filecolor: blue
 mainfont: Times New Roman
 monofont: Courier New
 editor: visual
@@ -26,7 +27,6 @@ execute:
   cache: true 
 ---
 
-```{=tex}
 \thispagestyle{empty}
 \vspace*{\fill}
 \begin{center}
@@ -38,7 +38,6 @@ execute:
 \vfill
 \end{center}
 \vspace*{\fill}
-```
 
 \newpage
 
@@ -48,19 +47,104 @@ execute:
 #| message: false
 
 # Paquetes a usar 
-require(magrittr)
-require(tidyverse)
-require(ggplot2)
-require(psych)
+require(magrittr)  # pip
+require(tidyverse) # Manipulación de datos 
+require(ggplot2)   # Gráficos 
+require(psych)     # tablas (headtail)
+library(stargazer) # código látex de las tablas 
+require(xtable)    # código látex de las tablas 
 ```
 
+# Información basica de la base de datos
 
-## preprocesamiento de la imformacion 
+### Contexto de la base de datos
+
+Predecir el comportamiento para fidelizar a los clientes. Puede analizar todos los datos relevantes de los clientes y desarrollar programas de fidelización específicos. [Conjuntos de datos de muestra de IBM].Cada fila representa un cliente, cada columna contiene los atributos del cliente descritos en la columna Metadatos.
 
 ```{r}
 #| echo: false
 datos <- read.csv("WA_Fn-UseC_-Telco-Customer-Churn.csv", header = TRUE, sep = ",")
 ```
 
-La base de datos cuenta con **`r dim(datos)`** filas y columnas respectivamente 
 
+La base de datos cuenta con **`r dim(datos)`** filas y columnas respectivamente,los nombres de las variables de la base de datos son **`r names(datos)`**, el conjunto de datos incluye información sobre:
+
+\- Clientes que se fueron en el último mes: la columna se llama **Churn** (Variable objetivo)\newline
+\- Servicios a los que se ha suscrito cada cliente: teléfono, líneas múltiples, Internet, seguridad en línea, copia de seguridad en línea, protección de dispositivos, soporte técnico y transmisión de TV y películas.\newline
+\- Información de la cuenta del cliente: cuánto tiempo ha sido cliente, contrato, método de pago, facturación electrónica, cargos mensuales y cargos totales\newline
+\- Información demográfica sobre los clientes: género, rango de edad y si tienen parejas y dependientes.
+
+Estas son algunas observaciones básicas de la base de datos ahora continuaremos e iremos mas afondo con nuestro datos, mostrando que tan completas están nuestras variables y la importancia que tendrá cada una de ellas en nuestros futuros modelos.
+
+[La base de datos la puedes encontrar dando click aquí](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?resource=download) 
+\newpage
+
+# Descripción General y Estadísticas Iniciales de la Base de Datos
+
+```{r}
+#| output: false
+
+resumen1 <- data.frame(variables = names(datos),
+completos = apply(!is.na(datos),2,sum)) %>% 
+  mutate(porcentaje_completo = round(completos/nrow(datos)*100,2))
+
+rownames(resumen1) <- NULL
+
+resumen1 <- resumen1[c("variables","porcentaje_completo")]
+
+```
+
+\begin{table}[ht]
+\centering
+\caption{Porcentaje de completitud de las variables}
+\begin{tabular}{|c|l|c|}
+\hline
+\textbf{N°} & \textbf{Variable} & \textbf{Porcentaje Completo (\%)} \\
+\hline
+1  & customerID        & 100.00 \\
+2  & gender            & 100.00 \\
+3  & SeniorCitizen     & 100.00 \\
+4  & Partner           & 100.00 \\
+5  & Dependents        & 100.00 \\
+6  & tenure            & 100.00 \\
+7  & PhoneService      & 100.00 \\
+8  & MultipleLines     & 100.00 \\
+9  & InternetService   & 100.00 \\
+10 & OnlineSecurity    & 100.00 \\
+11 & OnlineBackup      & 100.00 \\
+12 & DeviceProtection  & 100.00 \\
+13 & TechSupport       & 100.00 \\
+14 & StreamingTV       & 100.00 \\
+15 & StreamingMovies   & 100.00 \\
+16 & Contract          & 100.00 \\
+17 & PaperlessBilling  & 100.00 \\
+18 & PaymentMethod     & 100.00 \\
+19 & MonthlyCharges    & 100.00 \\
+20 & TotalCharges      &  99.84 \\
+21 & Churn             & 100.00 \\
+\hline
+\end{tabular}
+\end{table}
+
+```{r}
+# 🔹 Gráfica de % de completitud por variable
+ggplot(resumen1, aes(x = reorder(variables, porcentaje_completo), 
+                    y = porcentaje_completo)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Completitud de la base de datos",
+       x = "Variable",
+       y = "% de valores completos") +
+  theme_minimal()+
+    theme(
+    plot.title = element_text(hjust = 0.5),   # centra el título
+    axis.title.x = element_text(hjust = 0.5), # centra título eje X
+    axis.title.y = element_text(hjust = 0.5)  # centra título eje Y
+  )
+```
+
+\newpage 
+
+De acuerdo con la tabla y el gráfico presentados, la base de datos refleja un alto nivel de completitud, con un porcentaje mínimo de valores faltantes. Esta condición es favorable, ya que garantiza una mayor confiabilidad en los resultados posteriores y disminuye la necesidad de aplicar técnicas de imputación o eliminación de observaciones.
+
+Con esta base sólida, es posible avanzar hacia el análisis exploratorio de cada una de las variables, lo cual permitirá detectar posibles anomalías, patrones inusuales o inconsistencias en los registros. Asimismo, resulta fundamental revisar que el tipo de dato asignado a cada variable corresponda efectivamente con su naturaleza, asegurando que la base se encuentre correctamente estructurada para el modelado y el análisis estadístico posterior.
