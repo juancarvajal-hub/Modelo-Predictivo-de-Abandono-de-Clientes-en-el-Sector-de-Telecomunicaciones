@@ -36,7 +36,28 @@ cat("Base de datos bastante completa se evidencia poca presencia de valores falt
 
 ## ---------------- Análisis exploratorio de la información ------------------##
 
+# Sabemos que tenemos 21 variables en nuestra base de datos , lo que sigue es analizar si
+# hay variables que presenten problemas como registros mal tomados o revisemos como el R esta 
+# interpretando que tipo de variable es cada una de las columnas de la base de datos
 
+datos %>% str()
+datos <- datos %>% select(-customerID)
 
+# Revisemos los valores únicos de las variables que son tipo texto o factor
 
+for (i in names(datos)) { 
+  if (class(datos[[i]]) %in% c("character", "factor")) {
+    cat("\n", i, "tipo",class(datos[[i]]),"→ Valores únicos:\n")
+    print(unique(datos[[i]]))
+  }
+}
 
+# Resumen de las variables numéricas
+
+datos %>%
+  select(where(is.numeric)) %>%
+  summary()
+
+# Hasta este punto notamos que hay variables que requieren reemplazar valores y ajustar 
+# el tipo de datos al que pertenecen eso es lo siguiente que vamos a modificar sabiendo que 
+# la mayoría de variables deben ser de tipo factor.
