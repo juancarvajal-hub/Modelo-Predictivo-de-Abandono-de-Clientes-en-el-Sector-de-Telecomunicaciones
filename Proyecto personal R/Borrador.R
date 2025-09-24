@@ -3,6 +3,7 @@ require(magrittr)
 require(tidyverse)
 require(ggplot2)
 require(psych)
+require(xtable)
 
 rm(list = ls())
 gc()
@@ -47,7 +48,7 @@ datos <- datos %>% select(-customerID)
 
 for (i in names(datos)) { 
   if (class(datos[[i]]) %in% c("character", "factor")) {
-    cat("\n", i, "tipo",class(datos[[i]]),"→ Valores únicos:\n")
+    cat("\n", i, "tipo:",class(datos[[i]]),"→ Valores únicos:\n")
     print(unique(datos[[i]]))
   }
 }
@@ -56,8 +57,53 @@ for (i in names(datos)) {
 
 datos %>%
   select(where(is.numeric)) %>%
-  summary()
+  str()
 
 # Hasta este punto notamos que hay variables que requieren reemplazar valores y ajustar 
 # el tipo de datos al que pertenecen eso es lo siguiente que vamos a modificar sabiendo que 
 # la mayoría de variables deben ser de tipo factor.
+
+# convertir cada variable de tipo character a tipo factor 
+# Gender
+datos$SeniorCitizen <- as.character(datos$SeniorCitizen)
+datos$gender <- recode(datos$gender,"Female"="1",
+                       "Male"="0")
+# Partner
+# datos$Partner <- recode(datos$Partner,"Yes"="1",
+#                         "No"="0")
+# MultipleLines
+datos$MultipleLines <- recode(datos$MultipleLines,"No phone service"="No") 
+
+# OnlineSecurity
+datos$OnlineSecurity <- recode(datos$OnlineSecurity,"No internet service"="No")
+
+# OnlineBackup
+datos$OnlineBackup <- recode(datos$OnlineBackup,"No internet service"="No")
+
+# DeviceProtection
+datos$DeviceProtection <- recode(datos$DeviceProtection,"No internet service"="No")
+
+# TechSupport
+datos$TechSupport <- recode(datos$TechSupport,"No internet service"="No")
+
+# StreamingTV
+datos$StreamingTV <- recode(datos$StreamingTV,"No internet service"="No")
+
+# StreamingMovies
+datos$StreamingMovies <- recode(datos$StreamingMovies,"No internet service"="No")
+
+
+# Convertir en factor todas las variables de tipo character 
+datos %<>% mutate(across(where(is.character),as.factor))
+
+datos %<>% mutate(across(where(~is.factor(.) && all(levels(.) %in% c("Yes","No"))),
+                        ~ ifelse(.=="Yes","1","0")))
+datos %<>% mutate(across(where(is.character),as.factor))
+
+datos %>% str()
+# Mostrar el resultado en una tabla 
+
+data.frame(variables = c(names(datos)),
+           tipo = sapply(datos,class))
+
+                 
