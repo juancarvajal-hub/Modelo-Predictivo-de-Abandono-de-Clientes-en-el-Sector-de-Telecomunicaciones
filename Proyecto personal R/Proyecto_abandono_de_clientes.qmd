@@ -59,25 +59,20 @@ require(xtable)    # código látex de las tablas
 
 ### Contexto de la base de datos
 
-Predecir el comportamiento para fidelizar a los clientes. Puede analizar todos los datos relevantes de los clientes y desarrollar programas de fidelización específicos. [Conjuntos de datos de muestra de IBM].Cada fila representa un cliente, cada columna contiene los atributos del cliente descritos en la columna Metadatos.
+Predecir el comportamiento para fidelizar a los clientes. Puede analizar todos los datos relevantes de los clientes y desarrollar programas de fidelización específicos. \[Conjuntos de datos de muestra de IBM\].Cada fila representa un cliente, cada columna contiene los atributos del cliente descritos en la columna Metadatos.
 
 ```{r}
 #| echo: false
 datos <- read.csv("WA_Fn-UseC_-Telco-Customer-Churn.csv", header = TRUE, sep = ",")
 ```
 
-
 La base de datos cuenta con **`r dim(datos)`** filas y columnas respectivamente,los nombres de las variables de la base de datos son **`r names(datos)`**, el conjunto de datos incluye información sobre:
 
-\- Clientes que se fueron en el último mes: la columna se llama **Churn** (Variable objetivo)\newline
-\- Servicios a los que se ha suscrito cada cliente: teléfono, líneas múltiples, Internet, seguridad en línea, copia de seguridad en línea, protección de dispositivos, soporte técnico y transmisión de TV y películas.\newline
-\- Información de la cuenta del cliente: cuánto tiempo ha sido cliente, contrato, método de pago, facturación electrónica, cargos mensuales y cargos totales\newline
-\- Información demográfica sobre los clientes: género, rango de edad y si tienen parejas y dependientes.
+\- Clientes que se fueron en el último mes: la columna se llama **Churn** (Variable objetivo)\newline - Servicios a los que se ha suscrito cada cliente: teléfono, líneas múltiples, Internet, seguridad en línea, copia de seguridad en línea, protección de dispositivos, soporte técnico y transmisión de TV y películas.\newline - Información de la cuenta del cliente: cuánto tiempo ha sido cliente, contrato, método de pago, facturación electrónica, cargos mensuales y cargos totales\newline - Información demográfica sobre los clientes: género, rango de edad y si tienen parejas y dependientes.
 
 Estas son algunas observaciones básicas de la base de datos ahora continuaremos e iremos mas afondo con nuestro datos, mostrando que tan completas están nuestras variables y la importancia que tendrá cada una de ellas en nuestros futuros modelos.
 
-[La base de datos la puedes encontrar dando click aquí](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?resource=download) 
-\newpage
+[La base de datos la puedes encontrar dando click aquí](https://www.kaggle.com/datasets/blastchar/telco-customer-churn?resource=download) \newpage
 
 # Descripción General y Estadísticas Iniciales de la Base de Datos
 
@@ -91,7 +86,6 @@ completos = apply(!is.na(datos),2,sum)) %>%
 rownames(resumen1) <- NULL
 
 resumen1 <- resumen1[c("variables","porcentaje_completo")]
-
 ```
 
 \begin{table}[ht]
@@ -141,10 +135,149 @@ ggplot(resumen1, aes(x = reorder(variables, porcentaje_completo),
     axis.title.x = element_text(hjust = 0.5), # centra título eje X
     axis.title.y = element_text(hjust = 0.5)  # centra título eje Y
   )
+
+datos <- na.omit(datos)
 ```
 
-\newpage 
+\newpage
 
 De acuerdo con la tabla y el gráfico presentados, la base de datos refleja un alto nivel de completitud, con un porcentaje mínimo de valores faltantes. Esta condición es favorable, ya que garantiza una mayor confiabilidad en los resultados posteriores y disminuye la necesidad de aplicar técnicas de imputación o eliminación de observaciones.
 
 Con esta base sólida, es posible avanzar hacia el análisis exploratorio de cada una de las variables, lo cual permitirá detectar posibles anomalías, patrones inusuales o inconsistencias en los registros. Asimismo, resulta fundamental revisar que el tipo de dato asignado a cada variable corresponda efectivamente con su naturaleza, asegurando que la base se encuentre correctamente estructurada para el modelado y el análisis estadístico posterior.
+
+# Análisis individual de las variables
+
+```{r}
+# convertir cada variable de tipo character a tipo factor 
+# Gender
+datos$SeniorCitizen <- as.character(datos$SeniorCitizen)
+datos$gender <- recode(datos$gender,"Female"="1",
+                       "Male"="0")
+# reemplazar valores dentro de cada variable
+# MultipleLines
+datos$MultipleLines <- recode(datos$MultipleLines,"No phone service"="No") 
+# OnlineSecurity
+datos$OnlineSecurity <- recode(datos$OnlineSecurity,"No internet service"="No")
+# OnlineBackup
+datos$OnlineBackup <- recode(datos$OnlineBackup,"No internet service"="No")
+# DeviceProtection
+datos$DeviceProtection <- recode(datos$DeviceProtection,"No internet service"="No")
+# TechSupport
+datos$TechSupport <- recode(datos$TechSupport,"No internet service"="No")
+# StreamingTV
+datos$StreamingTV <- recode(datos$StreamingTV,"No internet service"="No")
+# StreamingMovies
+datos$StreamingMovies <- recode(datos$StreamingMovies,"No internet service"="No")
+
+# Convertir en factor todas las variables de tipo character 
+datos %<>% mutate(across(where(is.character),as.factor))
+
+datos %<>% mutate(across(where(~is.factor(.) && all(levels(.) %in% c("Yes","No"))),
+                        ~ ifelse(.=="Yes","1","0")))
+datos %<>% mutate(across(where(is.character),as.factor))
+
+
+# variables con tipo de datos y valores únicos corregidos
+# data.frame(variables = c(names(datos)),
+#           tipo = sapply(datos,class),row.names = NULL) %>% xtable()
+
+```
+
+\begin{table}[ht]
+\centering
+\caption{Tipos de variables en el dataset}
+\begin{tabular}{|r|l|l|}
+  \hline
+  & \textbf{Variables} & \textbf{Tipo} \\ 
+  \hline
+1 & customerID & factor \\ 
+2 & gender & factor \\ 
+3 & SeniorCitizen & factor \\ 
+4 & Partner & factor \\ 
+5 & Dependents & factor \\ 
+6 & tenure & integer \\ 
+7 & PhoneService & factor \\ 
+8 & MultipleLines & factor \\ 
+9 & InternetService & factor \\ 
+10 & OnlineSecurity & factor \\ 
+11 & OnlineBackup & factor \\ 
+12 & DeviceProtection & factor \\ 
+13 & TechSupport & factor \\ 
+14 & StreamingTV & factor \\ 
+15 & StreamingMovies & factor \\ 
+16 & Contract & factor \\ 
+17 & PaperlessBilling & factor \\ 
+18 & PaymentMethod & factor \\ 
+19 & MonthlyCharges & numeric \\ 
+20 & TotalCharges & numeric \\ 
+21 & Churn & factor \\ 
+  \hline
+\end{tabular}
+\end{table}
+
+\newpage
+
+Luego de realizar un análisis detallado de cada variable pudimos identificar que la mayoría de ellas el programa las reconocía como variables **character** cuando en realidad debían ser consideradas como tipo **factor**, ademas también pudimos identificar errores en la digitación de la información.
+
+# Graficas descriptivas individuales
+
+```{r}
+#| fig.show: hold
+#| layout-ncol: 3
+#| layout-nrow: 3
+#| fig.align: center
+#| fig.width: 6
+#| fig.height: 4
+
+# A Graficar en la siguiente pagina 
+
+for (i in names(select(datos,-c("Churn","TotalCharges","MonthlyCharges","tenure","customerID",
+  "StreamingMovies","StreamingTV","TechSupport",
+  "DeviceProtection")))){
+  print(
+  datos %>%  ggplot(aes(x=.data[[i]],fill = Churn))+ 
+    geom_bar(position = "dodge")+
+    labs(title = paste("Distribición de",i,"según Churn"),
+         x=i,y="Numero de clientes")+
+    scale_fill_brewer(palette = "Set2") +
+    geom_text(stat = "count", aes(label = ..count..),
+              position = position_dodge(width = 0.9), 
+              vjust = -0.3, size = 3) +
+    theme_minimal()+
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 14)  # centrado
+    )
+  )
+}
+```
+
+\newpage
+
+```{r}
+#| fig.show: hold
+#| layout-ncol: 3
+#| layout-nrow: 3
+#| fig.align: center
+#| fig.width: 6
+#| fig.height: 4
+
+
+for (i in c("StreamingMovies","StreamingTV",
+  "TechSupport","DeviceProtection")){
+  print(
+  datos %>%  ggplot(aes(x=.data[[i]],fill = Churn))+ 
+    geom_bar(position = "dodge")+
+    labs(title = paste("Distribición de",i,"según Churn"),
+         x=i,y="Numero de clientes")+
+    scale_fill_brewer(palette = "Set2") +
+    geom_text(stat = "count", aes(label = ..count..),
+              position = position_dodge(width = 0.9), 
+              vjust = -0.3, size = 3) +
+    theme_minimal()+
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 14)  # centrado
+    )
+  )
+}
+```
+

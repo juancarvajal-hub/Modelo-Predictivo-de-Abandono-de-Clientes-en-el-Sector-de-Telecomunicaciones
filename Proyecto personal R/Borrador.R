@@ -102,11 +102,31 @@ data.frame(variables = c(names(datos)),
            tipo = sapply(datos,class))
 
 
+
 ################################-------------###################################
 ###---------------------- Primeras gráficas descriptivas --------------------### 
 ################################-------------###################################
 
+for (i in names(select(datos,-c("Churn","TotalCharges","MonthlyCharges","tenure")))){
+  print(
+  datos %>%  ggplot(aes(x=.data[[i]],fill = Churn))+ 
+    geom_bar(position = "dodge")+
+    labs(title = paste("Distribición de",i,"según Churn"),
+         x=i,y="Numero de clientes")+
+    scale_fill_brewer(palette = "Set2") +
+    geom_text(stat = "count", aes(label = ..count..),
+              position = position_dodge(width = 0.9), 
+              vjust = -0.3, size = 3) +
+    theme_minimal()+
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 14)  # centrado
+    )
+  )
+}
 
+c("PaymentMethod","PaperlessBilling","Contract","StreamingMovies","StreamingTV","TechSupport",
+  "DeviceProtection")
+datos %>% select(where(is.factor)) %>% names()
 
 
 
