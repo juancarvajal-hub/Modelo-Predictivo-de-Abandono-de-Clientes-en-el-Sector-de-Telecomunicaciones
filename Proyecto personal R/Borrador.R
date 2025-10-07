@@ -127,7 +127,51 @@ for (i in names(select(datos,-c("Churn","TotalCharges","MonthlyCharges","tenure"
 c("PaymentMethod","PaperlessBilling","Contract","StreamingMovies","StreamingTV","TechSupport",
   "DeviceProtection")
 datos %>% select(where(is.factor)) %>% names()
+datos %>% names()
 
 
+# Mas graficas descriptivas esta vez tomando las variables numericas 
 
+for (i in c("tenure","MonthlyCharges","TotalCharges")){
+  if (i == "TotalCharges"){
+    print(
+      datos %>%
+        mutate(intervalo = cut(.data[[i]]/10, breaks = 10)) %>%        # Divide tenure en 10 intervalos
+        group_by(intervalo, Churn) %>%
+        summarise(Frecuencia = n()) %>%
+        ggplot(aes(x = intervalo, y = Frecuencia, fill = Churn)) +
+        geom_col(position = "dodge", color = "white") +          # Barras separadas
+        geom_text(aes(label = Frecuencia),
+                  position = position_dodge(width = 0.9),
+                  vjust = -0.3, size = 3.5) +                    # Texto encima de barras
+        scale_fill_brewer(palette = "Set2") +
+        labs(title = paste("Distribución de la Variable",i,"por Churn"),
+             x = paste(i,"(en intervalos)"),
+             y = "Frecuencia") +
+        theme_minimal() +
+        theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
+    )
+  }else{
+    print(
+      datos %>%
+        mutate(intervalo = cut(.data[[i]], breaks = 10)) %>%        # Divide tenure en 10 intervalos
+        group_by(intervalo, Churn) %>%
+        summarise(Frecuencia = n()) %>%
+        ggplot(aes(x = intervalo, y = Frecuencia, fill = Churn)) +
+        geom_col(position = "dodge", color = "white") +          # Barras separadas
+        geom_text(aes(label = Frecuencia),
+                  position = position_dodge(width = 0.9),
+                  vjust = -0.3, size = 3.5) +                    # Texto encima de barras
+        scale_fill_brewer(palette = "Set2") +
+        labs(title = paste("Distribución de la Variable",i,"por Churn"),
+             x = paste(i,"en intervalos"),
+             y = "Frecuencia") +
+        theme_minimal() +
+        theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
+      
+    )
+  }  
+}
+
+datos$TotalCharges %>% max()
                  
