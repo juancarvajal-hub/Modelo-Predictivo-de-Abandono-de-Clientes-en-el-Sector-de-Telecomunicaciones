@@ -173,5 +173,21 @@ for (i in c("tenure","MonthlyCharges","TotalCharges")){
   }  
 }
 
-datos$TotalCharges %>% max()
+#    gráficos de densidad 
+
+datos %>%
+  ggplot(aes(x = MonthlyCharges, fill = Churn)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Distribución de Tenure por Estado de Churn",
+       x = paste(""),
+       y = "Densidad") +
+  xlim(0,120)+
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
+
+
+# Modelos de prediccion 
+
+
                  

@@ -327,3 +327,36 @@ for (i in c("tenure","MonthlyCharges","TotalCharges")){
 }
 ```
 
+\vspace{0.7cm}
+
+Las gráficas anteriores muestran la cantidad de clientes que han abandonado el servicio y las personas que han permanecido con el en las diferentes variables de tipo factor que se tienen en la base de datos, ademas también presentamos gráficas con variables numéricas tomadas en intervalos para seguir observando el comportamiento de los cientes, una observación general es que son mas los clientes que deciden continuar con el servicio que los que deciden dejarlo. por ultimo revisemos un gráfico de densidad para las variables mas numericas de nuestro dataset.
+
+\vspace{0.7cm}
+
+
+```{r}
+#| fig.show: hold
+#| layout-ncol: 2
+
+for (i in c("MonthlyCharges","TotalCharges")){
+  print(
+    datos %>%
+  ggplot(aes(x = .data[[i]], fill = Churn)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = paste("Distribución de",i,"por Estado de Churn"),
+       x = paste(i),
+       y = "Densidad") +
+  xlim(0,120)+
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
+    
+  )
+  
+}
+```
+
+\newpage
+
+
+
