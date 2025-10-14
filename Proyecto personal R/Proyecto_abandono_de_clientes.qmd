@@ -53,6 +53,8 @@ require(ggplot2)   # Gráficos
 require(psych)     # tablas (headtail)
 library(stargazer) # código látex de las tablas 
 require(xtable)    # código látex de las tablas 
+library(caret)     # Separación de datos 
+library(pROC)
 ```
 
 # Información basica de la base de datos
@@ -329,9 +331,6 @@ for (i in c("tenure","MonthlyCharges","TotalCharges")){
 
 \vspace{0.7cm}
 
-Las gráficas anteriores muestran la cantidad de clientes que han abandonado el servicio y las personas que han permanecido con el en las diferentes variables de tipo factor que se tienen en la base de datos, ademas también presentamos gráficas con variables numéricas tomadas en intervalos para seguir observando el comportamiento de los cientes, una observación general es que son mas los clientes que deciden continuar con el servicio que los que deciden dejarlo. por ultimo revisemos un gráfico de densidad para las variables mas numericas de nuestro dataset.
-
-\vspace{0.7cm}
 
 
 ```{r}
@@ -356,7 +355,83 @@ for (i in c("MonthlyCharges","TotalCharges")){
 }
 ```
 
+Las gráficas anteriores muestran la cantidad de clientes que han abandonado el servicio y las personas que han permanecido con el en las diferentes variables de tipo factor que se tienen en la base de datos, ademas también presentamos gráficas con variables numéricas tomadas en intervalos para seguir observando el comportamiento de los cientes, una observación general es que son mas los clientes que deciden continuar con el servicio que los que deciden dejarlo. por ultimo revisemos un gráfico de densidad para las variables mas numéricas de nuestro dataset.
+
+\vspace{0.7cm}
+
 \newpage
 
+# Modelación (Datos supervisados)
+
+### Modelo de regresión logistico.
+
+El primer modelo que se va a implementar en este proyecto es el modelo de regresión logística aplicando el método de selección stepwise (paso a paso) y esto fueron los resultados que se obtuvieron.
+
+```{r}
+#| cache: true
+#| comment: ""
+
+trainIndex <- createDataPartition(datos$Churn, p = 0.8, list = FALSE)
+train <- datos[trainIndex, ]
+test <- datos[-trainIndex, ]
+
+# Modelo creado y guardado en el script Borrador de este proyecto.
+modelo_step <- readRDS("modelo_step.rds")
+# summary(modelo_step)$coefficients
+```
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Resumen de coeficientes del modelo logístico reducido}}
+\renewcommand{\arraystretch}{0.8} % más espacio entre filas
+\setlength{\tabcolsep}{8pt} % más espacio entre columnas
+\begin{tabular}{|l|r|r|r|r|}
+\hline
+\textbf{Variable} & \textbf{Estimate} & \textbf{Std. Error} & \textbf{z value} & \textbf{Pr($>$$|$z$|$)} \\ 
+\hline
+(Intercept) & 2.12 & 0.40 & 5.34 & 0.00 \\ 
+SeniorCitizen1 & 0.26 & 0.09 & 2.80 & 0.01 \\ 
+tenure & -0.06 & 0.01 & -8.78 & 0.00 \\ 
+PhoneService1 & 1.01 & 0.30 & 3.43 & 0.00 \\ 
+MultipleLines1 & 0.62 & 0.11 & 5.85 & 0.00 \\ 
+InternetServiceFiber optic & 2.79 & 0.31 & 8.90 & 0.00 \\ 
+InternetServiceNo & -2.81 & 0.38 & -7.34 & 0.00 \\ 
+OnlineBackup1 & 0.28 & 0.11 & 2.64 & 0.01 \\ 
+DeviceProtection1 & 0.40 & 0.11 & 3.64 & 0.00 \\ 
+StreamingTV1 & 1.04 & 0.16 & 6.69 & 0.00 \\ 
+StreamingMovies1 & 0.92 & 0.15 & 5.94 & 0.00 \\ 
+ContractOne year & -0.74 & 0.12 & -6.14 & 0.00 \\ 
+ContractTwo year & -1.33 & 0.20 & -6.74 & 0.00 \\ 
+PaperlessBilling1 & 0.36 & 0.08 & 4.33 & 0.00 \\ 
+PaymentMethodCredit card (automatic) & -0.07 & 0.13 & -0.52 & 0.60 \\ 
+PaymentMethodElectronic check & 0.28 & 0.11 & 2.59 & 0.01 \\ 
+PaymentMethodMailed check & -0.08 & 0.13 & -0.60 & 0.55 \\ 
+MonthlyCharges & -0.08 & 0.01 & -6.39 & 0.00 \\ 
+TotalCharges & 0.00 & 0.00 & 3.98 & 0.00 \\ 
+\hline
+\end{tabular}
+\end{table}
+
+```{r}
+# Predicciones en probabilidad
+pred_probs <- predict(modelo_step, newdata = test, type = "response")
+
+# Convertir a clases
+pred_class <- ifelse(pred_probs > 0.5, "1", "0")
+pred_class <- as.factor(pred_class)
+
+# Matriz de confusión
+conf_matrix <- confusionMatrix(pred_class, test$Churn, positive = "1")
+conf_matrix$table
+
+conf_matrix$overall["Accuracy"]
+```
+
+
+```{r}
+roc_obj <- roc(test$Churn, pred_probs)
+plot(roc_obj, col = "blue", main = "Curva ROC - Regresión Logística")
+auc(roc_obj)
+```
 
 
