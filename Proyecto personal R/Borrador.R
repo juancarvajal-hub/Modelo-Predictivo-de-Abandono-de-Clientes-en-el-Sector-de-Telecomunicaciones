@@ -4,6 +4,8 @@ require(tidyverse)
 require(ggplot2)
 require(psych)
 require(xtable)
+library(caret)
+library(pROC)
 
 rm(list = ls())
 gc()
@@ -187,7 +189,53 @@ datos %>%
   theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
 
 
-# Modelos de prediccion 
+# ---------------Modelos de clasificación para la predicción ------------------#
+################################################################################
 
+# -------------------------- Regresión logística ------------------------------#
 
+datos %<>% na.omit()
+# Dividir en conjunto de entrenamiento y prueba
+set.seed(212001)
+library(caret)
+
+trainIndex <- createDataPartition(datos$Churn, p = 0.8, list = FALSE)
+train <- datos[trainIndex, ]
+test <- datos[-trainIndex, ]
+train %>% dim()
+test %>% dim()
                  
+
+## Ajustar el  Modelo de regresión logística 
+
+modelo_log <- glm(Churn ~.,
+                  data = train,
+                  family = binomial)
+summary(modelo_log)
+
+# Reducción de variables 
+
+modelo_step <- step(modelo_log, direction = "both", trace = FALSE)
+saveRDS(modelo_step,"modelo_step.rds")
+
+summary(modelo_step)$
+
+# El modelo mejora considerablemente el numero de variables significativas del modelo 
+
+# Predicciones en probabilidad
+pred_probs <- predict(modelo_step, newdata = test, type = "response")
+
+# Convertir a clases
+pred_class <- ifelse(pred_probs > 0.5, "1", "0")
+pred_class <- as.factor(pred_class)
+
+
+# Evaluación del modelo.
+
+# Matriz de confusión
+conf_matrix <- confusionMatrix(pred_class, test$Churn, positive = "1")
+conf_matrix
+
+roc_obj <- roc(test$Churn, pred_probs)
+plot(roc_obj, col = "blue", main = "Curva ROC - Regresión Logística")
+auc(roc_obj)
