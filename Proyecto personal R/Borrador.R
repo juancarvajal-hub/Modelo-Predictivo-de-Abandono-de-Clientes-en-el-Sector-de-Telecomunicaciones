@@ -239,3 +239,48 @@ conf_matrix
 roc_obj <- roc(test$Churn, pred_probs)
 plot(roc_obj, col = "blue", main = "Curva ROC - Regresión Logística")
 auc(roc_obj)
+
+
+# Curva roc versión mejorada 
+
+# Extraer los datos de la curva ROC
+roc_df <- data.frame(
+  FPR = 1 - roc_obj$specificities,
+  TPR = roc_obj$sensitivities
+)
+
+# Valor del AUC
+auc_value <- round(auc(roc_obj), 3)
+
+# Crear una columna para el valor de la línea diagonal
+roc_df$random_line <- roc_df$FPR
+
+# Gráfico
+ggplot(roc_df, aes(x = FPR, y = TPR)) +
+  # sombreado entre la curva y la línea diagonal
+  geom_ribbon(aes(ymin = random_line, ymax = TPR),
+              fill = "#0072B2", alpha = 0.25) +
+  # línea ROC
+  geom_line(color = "#0072B2", size = 1.2) +
+  # línea diagonal de referencia
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray60") +
+  labs(
+    title = "Curva ROC - Modelo de Regresión Logística",
+    subtitle = paste("Área bajo la curva (AUC):", auc_value),
+    x = "1 - Especificidad (False Positive Rate)",
+    y = "Sensibilidad (True Positive Rate)"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, face = "italic", color = "gray40"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray85"),
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "gray30")
+  )
+
+
+#---------------------------- Modelo de Random forest -------------------------#
+################################################################################
+
