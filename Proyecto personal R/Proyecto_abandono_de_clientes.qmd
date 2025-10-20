@@ -55,6 +55,8 @@ library(stargazer) # código látex de las tablas
 require(xtable)    # código látex de las tablas 
 library(caret)     # Separación de datos 
 library(pROC)
+library(randomForest)
+library(xgboost)
 ```
 
 # Información basica de la base de datos
@@ -221,7 +223,7 @@ datos %<>% mutate(across(where(is.character),as.factor))
 
 Luego de realizar un análisis detallado de cada variable pudimos identificar que la mayoría de ellas el programa las reconocía como variables **character** cuando en realidad debían ser consideradas como tipo **factor**, ademas también pudimos identificar errores en la digitación de la información.
 
-# Graficas descriptivas individuales
+# Gráficas descriptivas individuales
 
 ```{r}
 #| fig.show: hold
@@ -331,8 +333,6 @@ for (i in c("tenure","MonthlyCharges","TotalCharges")){
 
 \vspace{0.7cm}
 
-
-
 ```{r}
 #| fig.show: hold
 #| layout-ncol: 2
@@ -363,7 +363,7 @@ Las gráficas anteriores muestran la cantidad de clientes que han abandonado el 
 
 # Modelación (Datos supervisados)
 
-### Modelo de regresión logistico.
+### Modelo de regresión logístico.
 
 El primer modelo que se va a implementar en este proyecto es el modelo de regresión logística aplicando el método de selección stepwise (paso a paso) y esto fueron los resultados que se obtuvieron.
 
@@ -427,7 +427,6 @@ conf_matrix$table
 cat("La precision con la que el modelo acierta es de ",conf_matrix$overall["Accuracy"])
 ```
 
-
 ```{r}
 #| fig.width: 5
 #| fig.height: 3.8
@@ -474,4 +473,76 @@ ggplot(roc_df, aes(x = FPR, y = TPR)) +
 
 ### Modelo de Random Forest.
 
+```{r}
 
+modelo_rf <- readRDS("modelo_rf.rds")
+
+conf_matrix_rf <- readRDS("conf_matrix_rf.rds")
+
+conf_matrix_rf$table
+cat("La precision con la que el modelo acierta es de",conf_matrix_rf$overall["Accuracy"])
+```
+
+\vspace{0.7cm}
+
+Hasta este punto ambos modelos dan un precisión casi igual, no se evidencia una mejora en el modelo de **Random Forest** pero, haremos un análisis de las variables e intentaremos mejorar mas las predicciones de nuestro modelo.
+
+\newpage
+
+### Visualización de importancia relativa de cada variable del modelo
+
+```{r}
+#| fig.width: 7
+#| fig.height: 6
+#| fig.align: center
+ 
+varImpPlot(modelo_rf,
+           main = "Importancia de las Variables - Random Forest",
+           col = "#1B9E77")
+```
+
+Entonces las variables que vamos a considerar dejar en el modelo son TotalCharges, MonthlyCharges,tenure,Contract, InternetService, PaymentMethod,PaperlessBilling  TechSupport, OnlineSecurity, PaperlessBilling, PaymentMethod, OnlineBackup, StreamingTV.
+
+\newpage
+
+```{r}
+modelo_rf_reducido <- readRDS("modelo_rf_reducido.rds")
+conf_matrix_rf_reducido <- readRDS("conf_matrix_rf_reducido.rds")
+
+conf_matrix_rf_reducido$table
+cat("La precision con la que el modelo acierta es   de",conf_matrix_rf_reducido$overall["Accuracy"])
+```
+
+\vspace{1cm}
+
+```{r}
+g <- readRDS("g.rds")
+g
+```
+
+
+### Modelo XGBOOST
+
+```{r}
+modelo_xgb_tuned <- readRDS("modelo_xgb_tuned.rds")
+plot(modelo_xgb_tuned)
+
+conf_matrix_xg <- readRDS("conf_matrix_xg.rds")
+
+conf_matrix_xg$table
+
+cat("La precision con la que el modelo acierta es   de",conf_matrix_xg$overall["Accuracy"])
+```
+
+```{r}
+g1 <- readRDS("g1.rds")
+g1
+```
+
+### Conclusion 
+
+Tras la comparación de los tres modelos de clasificación —Regresión Logística, Random Forest y XGBoost— se observó que todos presentan un desempeño similar en términos de métricas de evaluación (AUC, precisión, recall y matriz de confusión).
+
+Si bien el modelo XGBoost obtuvo el mejor rendimiento, superando ligeramente a los otros dos, la diferencia fue mínima, lo que indica que los tres algoritmos logran capturar de forma consistente los patrones de abandono (churn) presentes en los datos.
+
+Esto sugiere que el conjunto de variables utilizadas tiene un poder predictivo estable, y que la mejora de la precisión podría depender más del ajuste fino de hiperparámetros o de la incorporación de nuevas variables (por ejemplo, variables de comportamiento o uso del servicio) que del tipo de modelo en sí.
